@@ -1,12 +1,8 @@
-import androidx.compose.material.MaterialTheme
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -16,31 +12,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.withSave
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.loadSvgPainter
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.useResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import java.io.BufferedInputStream
-import java.io.BufferedReader
-import java.io.File
-import java.io.FileInputStream
-import java.net.URL
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
+
+
+var cardService = CardFileService();
+
 
 @Composable
 @Preview
 fun App() {
-    var text by remember { mutableStateOf("Hello, World!") }
 
     MaterialTheme {
         TitleScreen("Elevens")
@@ -50,31 +39,46 @@ fun App() {
 
 @Composable
 fun TitleScreen(title: String = "title") {
-
+    var score by remember { mutableStateOf(0) }
+    val cards = remember { mutableStateListOf(*(arrayOf(ge))) }
 
     Scaffold(
-        topBar = { Text(title) },
+        topBar = {
+
+            Text("score $score")
+
+        },
         modifier = Modifier.padding(20.dp)
     ) {
+        PlayingDeck(cards);
 
-        Column(
-            verticalArrangement = Arrangement.SpaceEvenly,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Card(scale = .5f, modifier = Modifier.fillMaxSize())
-            Card(scale = .5f, modifier = Modifier.fillMaxSize())
-
-
-        }
     }
 
 }
 
 @Composable
-fun Card(cardName: String = "ace_of_clubs", modifier: Modifier = Modifier, scale: Float) {
+fun PlayingDeck(cards: SnapshotStateList<String>) {
+
+    Column(
+        verticalArrangement = Arrangement.SpaceEvenly
+    ) {
+        for (i in 0 until 3)
+            Row(
+                modifier = Modifier.fillMaxWidth().height(150.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                for (i in 0 until 3) {
+
+                    Card(name = cards.random(), scale = .5f, modifier = Modifier.fillMaxSize())
+                }
+            }
+    }
+}
+@Composable
+fun Card(name: String = cardService.getRanCardName(), modifier: Modifier = Modifier, scale: Float) {
     Image(
-        painter = getCardSvg(cardName, scale = scale),
+        painter = getCardSvg(name, scale = scale),
         contentDescription = null
     )
 
@@ -85,16 +89,15 @@ fun Card(cardName: String = "ace_of_clubs", modifier: Modifier = Modifier, scale
 fun getCardSvg(cardName: String, scale: Float): Painter =
 
     loadSvgPainter(
-        object{}::class.java.getResourceAsStream("/SVG-cards-1.3/$cardName.svg"),
+        cardService.getSpecifiedCardStream("$cardName"),
         density = Density(scale)
     )
 
-
-
-
-
 fun main() = application {
-    Window(onCloseRequest = ::exitApplication) {
+    Window(
+        onCloseRequest = ::exitApplication,
+        title = "Elevens"
+    ) {
         App()
     }
 }
