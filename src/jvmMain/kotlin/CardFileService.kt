@@ -4,9 +4,11 @@ import java.io.InputStream
 class CardFileService {
 
     companion object {
-        const val DIRECTORY_TO_FILES = "/SVG-cards-1.3";
+        const val DIRECTORY_TO_FILES = "/SVG-cards-1.3/";
 
     }
+
+    var cards: List<String> = emptyList();
 
 
     fun getRanCardName(): String {
@@ -23,10 +25,17 @@ class CardFileService {
         return getSpecifiedCardStream(getRanCardName())
     }
 
-    fun getAllCardNames(): MutableList<String> {
+    fun getAllCardNames(): List<String> {
 
-        val files = File(object {}::class.java.getResource(DIRECTORY_TO_FILES).file).listFiles();
+        if (cards.isEmpty()) {
+           cards = File(object {}::class.java.getResource(DIRECTORY_TO_FILES).file).listFiles().toList().stream().map { it.name }.toList();
+            println(cards);
+            return cards;
+        }
 
-        return files.toList().stream().map { it.name }.toList()
+        println(cards);
+
+
+        return cards;
     }
 }

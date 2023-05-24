@@ -2,6 +2,7 @@ import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
@@ -22,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import java.util.stream.IntStream
 
 
 var cardService = CardFileService();
@@ -40,17 +42,42 @@ fun App() {
 @Composable
 fun TitleScreen(title: String = "title") {
     var score by remember { mutableStateOf(0) }
-    val cards = remember { mutableStateListOf(*(arrayOf(ge))) }
+    val cards = cardService.getAllCardNames();
+
+    var deck = remember {
+        mutableStateListOf(
+            *Array(9) {
+                cards.random()
+            }
+        )
+
+    }
 
     Scaffold(
         topBar = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
 
-            Text("score $score")
+            ) {
+                Text("score $score")
+                Button(
+                    onClick = {
+
+                    },
+                    content = { Text("randomize") }
+                )
+
+            }
+
 
         },
         modifier = Modifier.padding(20.dp)
     ) {
-        PlayingDeck(cards);
+
+        PlayingDeck(deck);
+
 
     }
 
@@ -62,7 +89,7 @@ fun PlayingDeck(cards: SnapshotStateList<String>) {
     Column(
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
-        for (i in 0 until 3)
+        for (j in 0 until 3)
             Row(
                 modifier = Modifier.fillMaxWidth().height(150.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -70,11 +97,14 @@ fun PlayingDeck(cards: SnapshotStateList<String>) {
             ) {
                 for (i in 0 until 3) {
 
-                    Card(name = cards.random(), scale = .5f, modifier = Modifier.fillMaxSize())
+                    val i_n =
+                    println(i_n)
+                    Card(name = cards[i_n], scale = .5f, modifier = Modifier.fillMaxSize())
                 }
             }
     }
 }
+
 @Composable
 fun Card(name: String = cardService.getRanCardName(), modifier: Modifier = Modifier, scale: Float) {
     Image(
@@ -86,12 +116,12 @@ fun Card(name: String = cardService.getRanCardName(), modifier: Modifier = Modif
 
 
 @Composable
-fun getCardSvg(cardName: String, scale: Float): Painter =
-
-    loadSvgPainter(
+fun getCardSvg(cardName: String, scale: Float): Painter {
+    return loadSvgPainter(
         cardService.getSpecifiedCardStream("$cardName"),
         density = Density(scale)
     )
+}
 
 fun main() = application {
     Window(
