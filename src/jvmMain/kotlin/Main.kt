@@ -1,5 +1,6 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Button
@@ -34,21 +35,27 @@ var cardService = CardFileService();
 fun App() {
 
     MaterialTheme {
-        TitleScreen("Elevens")
+        Game("Elevens")
     }
 }
 
 
 @Composable
-fun TitleScreen(title: String = "title") {
-    var score by remember { mutableStateOf(0) }
-    val cards = cardService.getAllCardNames();
-
+fun Game(title: String = "title") {
+    var score = remember { mutableStateOf(0) }
+    var lastIndex = remember {mutableStateOf(0)}
+    val elevens = Elevens();
+    val cards: List<String> = cardService.getAllCardNames().shuffled();
     var deck = remember {
         mutableStateListOf(
-            *Array(9) {
-                cards.random()
+            *with(cards) {
+
+                Array(9) {
+                    lastIndex.value = it;
+                    this[it]
+                }
             }
+
         )
 
     }
@@ -61,10 +68,10 @@ fun TitleScreen(title: String = "title") {
                 verticalAlignment = Alignment.CenterVertically
 
             ) {
-                Text("score $score")
+                Text("score ${score.value}")
                 Button(
                     onClick = {
-
+                        deck.shuffle();
                     },
                     content = { Text("randomize") }
                 )
@@ -76,7 +83,7 @@ fun TitleScreen(title: String = "title") {
         modifier = Modifier.padding(20.dp)
     ) {
 
-        PlayingDeck(deck);
+        PlayingDeck(cards = deck, elevens = elevens, score = score, index = lastIndex.value, remainingCards = cards);
 
 
     }
@@ -84,8 +91,15 @@ fun TitleScreen(title: String = "title") {
 }
 
 @Composable
-fun PlayingDeck(cards: SnapshotStateList<String>) {
-
+fun PlayingDeck(modifier: Modifier = Modifier,
+                cards: SnapshotStateList<String>,
+                elevens: Elevens, score: MutableState<Int>,
+                index: Int = 0,
+                remainingCards: List<String>
+) {
+    val clickedCards = remember {
+        mutableStateListOf(*emptyArray<String>())
+    }
     Column(
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
@@ -97,17 +111,44 @@ fun PlayingDeck(cards: SnapshotStateList<String>) {
             ) {
                 for (i in 0 until 3) {
 
-                    val i_n =
-                    println(i_n)
-                    Card(name = cards[i_n], scale = .5f, modifier = Modifier.fillMaxSize())
+                    val i_n = j * 3 + i
+                    Card(name = cards[i_n],
+                        scale = .5f,
+                        modifier = Modifier
+
+                            .clickable {
+                                if (cards[i_n] !in clickedCards)
+                                    clickedCards.add(cards[i_n])
+                                if (clickedCards.size == 2) {
+                                    if (elevens.addsToElevens(clickedCards[0], clickedCards[1])) {
+
+                                        score.value = score.value+1;
+                                        cards.remove(clickedCards[0])
+                                        cards.remove(clickedCards[1])
+
+                                        cards.add(remainingCards[index+1])
+                                        cards.add(remainingCards[index+2])
+
+                                        clickedCards.clear()
+
+
+                                    }
+
+                                }
+                            }
+                    )
                 }
             }
     }
 }
 
+
+
+
 @Composable
 fun Card(name: String = cardService.getRanCardName(), modifier: Modifier = Modifier, scale: Float) {
     Image(
+        modifier = modifier,
         painter = getCardSvg(name, scale = scale),
         contentDescription = null
     )
