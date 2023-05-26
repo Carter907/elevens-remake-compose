@@ -83,7 +83,7 @@ fun Game(title: String = "title") {
         modifier = Modifier.padding(20.dp)
     ) {
 
-        PlayingDeck(cards = deck, elevens = elevens, score = score, index = lastIndex.value, remainingCards = cards);
+        PlayingDeck(cards = deck, elevens = elevens, score = score, remainingIndex = lastIndex, remainingCards = cards);
 
 
     }
@@ -94,12 +94,13 @@ fun Game(title: String = "title") {
 fun PlayingDeck(modifier: Modifier = Modifier,
                 cards: SnapshotStateList<String>,
                 elevens: Elevens, score: MutableState<Int>,
-                index: Int = 0,
+                remainingIndex: MutableState<Int>,
                 remainingCards: List<String>
 ) {
     val clickedCards = remember {
         mutableStateListOf(*emptyArray<String>())
     }
+
     Column(
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
@@ -122,17 +123,17 @@ fun PlayingDeck(modifier: Modifier = Modifier,
                                 if (clickedCards.size == 2) {
                                     if (elevens.addsToElevens(clickedCards[0], clickedCards[1])) {
 
-                                        score.value = score.value+1;
+                                        score.value = score.value + 1;
                                         cards.remove(clickedCards[0])
                                         cards.remove(clickedCards[1])
 
-                                        cards.add(remainingCards[index+1])
-                                        cards.add(remainingCards[index+2])
-
-                                        clickedCards.clear()
+                                        cards.add(remainingCards[remainingIndex.value + 1])
+                                        cards.add(remainingCards[remainingIndex.value + 2])
+                                        remainingIndex.value += 2;
 
 
                                     }
+                                    clickedCards.clear()
 
                                 }
                             }
